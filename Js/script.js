@@ -32,7 +32,7 @@ function cycleBackgrounds() {
 
 const updateBackground = cycleBackgrounds();
 setBackground(0);
-setInterval(updateBackground, 60000);
+setInterval(updateBackground, 30000);
 
 function randomObstacleSprite() {
     const randomIndex = Math.floor(Math.random() * obstacleSprites.length);
@@ -43,11 +43,11 @@ function randomObstacleSprite() {
     block.style.backgroundRepeat = 'no-repeat';
     block.style.backgroundPosition = 'center';
 }
-/*
+
 block.addEventListener('animationiteration', function () {
     randomObstacleSprite();
 });
-*/
+
 const jump = function () {
     if (!character.classList.contains('animate')) {
         character.classList.add('animate');
