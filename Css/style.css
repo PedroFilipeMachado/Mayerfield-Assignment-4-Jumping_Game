@@ -1,0 +1,86 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f3f3;
+}
+
+#game {
+    width: 500px;
+    height: 200px;
+    border: none;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
+
+#character {
+    width: 70px;
+    height: 50px;
+    background-image: url('../Assets/Characters/NonDescriptMonster.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+    top: 150px;
+}
+
+#hitbox {
+    position: absolute;
+    width: 24px;
+    height: 34px;
+    left: 25px;
+    top: 13px;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Classes with keyframes */
+
+#block {
+    width: 40px;
+    height: 40px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+    bottom: 0px;
+    left: 480px;
+    animation: slide 1s infinite;
+}
+
+@keyframes slide {
+    0% {
+        left: 480px;
+    }
+
+    100% {
+        left: -40px;
+    }
+}
+
+.animate {
+    animation: jump 500ms;
+}
+
+@keyframes jump {
+    0% {
+        top: 150px;
+    }
+
+    30% {
+        top: 100px;
+    }
+
+    70% {
+        top: 100px;
+    }
+
+    100% {
+        top: 150px;
+    }
+}
