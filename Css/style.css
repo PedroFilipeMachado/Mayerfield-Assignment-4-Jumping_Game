@@ -83,7 +83,12 @@ body {
     position: absolute;
     bottom: 0px;
     left: 1000px;
-    animation: slide 1.5s linear infinite;
+    display: none;
+    animation: none !important;
+}
+
+#game.game-started #block {
+    animation: slide 1.5s linear infinite !important;
 }
 
 @keyframes slide {
