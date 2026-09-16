@@ -1,11 +1,17 @@
 let character = document.getElementById('character');
 let hitbox = document.getElementById('hitbox');
 let block = document.getElementById('block');
+let upperBlock = document.getElementById('upper-block');
 let game = document.getElementById('game');
 let scoreElement = document.getElementById('score');
 let obstaclesAvoidedElement = document.getElementById('obstacles-avoided');
+let musicVolume = document.getElementById('music-volume');
+const backgroundMusic = new Audio('Assets/Music/AdhesiveWombat - Night Shade.mp3');
+backgroundMusic.loop = true;
+backgroundMusic.volume = musicVolume.value;
 
 block.style.display = 'none';
+upperBlock.style.display = 'none';
 
 const backgroundSprites = [
     'Assets/Backgrounds/day_background.png',
@@ -32,6 +38,11 @@ const obstacleSprites = [
     'Assets/Obstacles/building_16.png',
     'Assets/Obstacles/building_17.png',
     'Assets/Obstacles/building_18.png',
+    'Assets/Obstacles/plane_1.png',
+    'Assets/Obstacles/plane_2.png',
+    'Assets/Obstacles/plane_3.png',
+    'Assets/Obstacles/plane_4.png',
+    'Assets/Obstacles/plane_5.png',
 
 ];
 
@@ -50,26 +61,40 @@ function cycleBackgrounds() {
 }
 
 const obstacleSpeedIncrease = 0.9;
+const minimumObstacleGap = 300;
 let obstaclePlaybackRate = 1;
 let gameOver = false;
+let lowerObstacleSpawnTimeout;
+let upperObstacleSpawnTimeout;
 
 function increaseObstacleSpeed() {
     obstaclePlaybackRate /= obstacleSpeedIncrease;
-    const obstacleAnimation = block.getAnimations()[0];
+    const obstacleAnimations = block.getAnimations().concat(upperBlock.getAnimations());
 
-    if (obstacleAnimation) {
-        obstacleAnimation.updatePlaybackRate(obstaclePlaybackRate);
-    }
+    obstacleAnimations.forEach(function (animation) {
+        animation.updatePlaybackRate(obstaclePlaybackRate);
+    });
 }
 
-function randomObstacleSprite() {
+function randomObstacleSprite(obstacle) {
     const randomIndex = Math.floor(Math.random() * obstacleSprites.length);
     const chosenSprite = obstacleSprites[randomIndex];
 
-    block.style.backgroundImage = `url("${chosenSprite}")`;
-    block.style.backgroundSize = 'contain';
-    block.style.backgroundRepeat = 'no-repeat';
-    block.style.backgroundPosition = 'center';
+    obstacle.style.backgroundImage = `url("${chosenSprite}")`;
+    obstacle.style.backgroundSize = 'contain';
+    obstacle.style.backgroundRepeat = 'no-repeat';
+    obstacle.style.backgroundPosition = 'center';
+}
+
+function canSpawnObstacle(obstacle) {
+    const otherObstacle = obstacle === block ? upperBlock : block;
+
+    if (otherObstacle.style.display === 'none') {
+        return true;
+    }
+
+    const otherObstaclePosition = otherObstacle.getBoundingClientRect().left;
+    return Math.abs(1000 - otherObstaclePosition) >= minimumObstacleGap;
 }
 
 function spawnObstacle() {
@@ -77,7 +102,12 @@ function spawnObstacle() {
         return;
     }
 
-    randomObstacleSprite();
+    if (!canSpawnObstacle(block)) {
+        lowerObstacleSpawnTimeout = setTimeout(spawnObstacle, 100);
+        return;
+    }
+
+    randomObstacleSprite(block);
     block.getAnimations().forEach(function (animation) {
         animation.cancel();
     });
@@ -90,7 +120,39 @@ function spawnObstacle() {
     }
 }
 
+function spawnUpperObstacle() {
+    if (gameOver) {
+        return;
+    }
+
+    if (!canSpawnObstacle(upperBlock)) {
+        upperObstacleSpawnTimeout = setTimeout(spawnUpperObstacle, 100);
+        return;
+    }
+
+    randomObstacleSprite(upperBlock);
+    upperBlock.getAnimations().forEach(function (animation) {
+        animation.cancel();
+    });
+    upperBlock.style.left = '1000px';
+    upperBlock.style.display = 'block';
+
+    const obstacleAnimation = upperBlock.getAnimations()[0];
+    if (obstacleAnimation) {
+        obstacleAnimation.updatePlaybackRate(obstaclePlaybackRate);
+    }
+}
+
 const pointsPerSecond = 10;
+
+function playBackgroundMusic() {
+    backgroundMusic.play().catch(function () {
+    });
+}
+
+musicVolume.addEventListener('input', function () {
+    backgroundMusic.volume = musicVolume.value;
+});
 
 const groundPosition = 300;
 const jumpStrength = 18;
@@ -128,6 +190,8 @@ const jump = function () {
         return;
     }
 
+    playBackgroundMusic();
+
     isJumping = true;
     characterVelocity = -jumpStrength;
 
@@ -147,17 +211,23 @@ function startGame() {
     const gameStartTime = Date.now();
     let scoreTimer;
     let obstaclesAvoided = 0;
-    let obstacleSpawnTimeout;
 
     gameOver = false;
+    backgroundMusic.currentTime = 0;
+    playBackgroundMusic();
     block.getAnimations().forEach(function (animation) {
+        animation.cancel();
+    });
+    upperBlock.getAnimations().forEach(function (animation) {
         animation.cancel();
     });
     block.style.left = '1000px';
     block.style.display = 'none';
+    upperBlock.style.left = '1000px';
+    upperBlock.style.display = 'none';
     game.classList.add('game-started');
     setBackground(0);
-    setInterval(updateBackground, 10000);
+    setInterval(updateBackground, 25000);
 
     block.addEventListener('animationiteration', function () {
         obstaclesAvoided += 1;
@@ -166,7 +236,17 @@ function startGame() {
             animation.cancel();
         });
         block.style.display = 'none';
-        obstacleSpawnTimeout = setTimeout(spawnObstacle, Math.random() * 1500);
+        lowerObstacleSpawnTimeout = setTimeout(spawnObstacle, Math.random() * 1500);
+    });
+
+    upperBlock.addEventListener('animationiteration', function () {
+        obstaclesAvoided += 1;
+        obstaclesAvoidedElement.textContent = obstaclesAvoided;
+        upperBlock.getAnimations().forEach(function (animation) {
+            animation.cancel();
+        });
+        upperBlock.style.display = 'none';
+        upperObstacleSpawnTimeout = setTimeout(spawnUpperObstacle, Math.random() * 1500);
     });
 
     function updateScore() {
@@ -179,23 +259,35 @@ function startGame() {
     const checkDead = setInterval(function () {
         let hitboxRect = hitbox.getBoundingClientRect();
         let blockRect = block.getBoundingClientRect();
+        let upperBlockRect = upperBlock.getBoundingClientRect();
 
-        let overlaps =
+        let lowerOverlap =
             hitboxRect.right > blockRect.left &&
             hitboxRect.left < blockRect.right &&
             hitboxRect.bottom > blockRect.top &&
             hitboxRect.top < blockRect.bottom;
+        let upperOverlap =
+            hitboxRect.right > upperBlockRect.left &&
+            hitboxRect.left < upperBlockRect.right &&
+            hitboxRect.top < upperBlockRect.bottom &&
+            hitboxRect.bottom > upperBlockRect.top;
 
-        if (overlaps) {
+        if (lowerOverlap || upperOverlap) {
             gameOver = true;
+            backgroundMusic.pause();
             game.classList.remove('game-started');
             block.getAnimations().forEach(function (animation) {
                 animation.cancel();
             });
+            upperBlock.getAnimations().forEach(function (animation) {
+                animation.cancel();
+            });
             block.style.display = 'none';
+            upperBlock.style.display = 'none';
             clearInterval(checkDead);
             clearInterval(scoreTimer);
-            clearTimeout(obstacleSpawnTimeout);
+            clearTimeout(lowerObstacleSpawnTimeout);
+            clearTimeout(upperObstacleSpawnTimeout);
             updateScore();
 
             const crashSound = crashSounds[Math.floor(Math.random() * crashSounds.length)];
@@ -214,6 +306,7 @@ function startGame() {
     }, 10);
 
     spawnObstacle();
+    upperObstacleSpawnTimeout = setTimeout(spawnUpperObstacle, 500);
     document.addEventListener('keydown', jump);
 }
 

@@ -30,6 +30,18 @@ body {
     gap: 10px;
 }
 
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#music-volume {
+    width: 100px;
+    accent-color: #c2410c;
+    cursor: pointer;
+}
+
 .score-label {
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -74,7 +86,8 @@ body {
     pointer-events: none;
 }
 
-#block {
+#block,
+#upper-block {
     width: 80px;
     height: 80px;
     background-size: contain;
@@ -87,7 +100,13 @@ body {
     animation: none !important;
 }
 
-#game.game-started #block {
+#upper-block {
+    top: 170px;
+    bottom: auto;
+}
+
+#game.game-started #block,
+#game.game-started #upper-block {
     animation: slide 1.5s linear infinite !important;
 }
 

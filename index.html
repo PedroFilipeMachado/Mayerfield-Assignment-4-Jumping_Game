@@ -19,12 +19,17 @@
                 <span class="score-label">Avoided</span>
                 <span id="obstacles-avoided">0</span>
             </div>
+            <label class="volume-control" for="music-volume">
+                <span class="score-label">Music</span>
+                <input id="music-volume" type="range" min="0" max="1" step="0.01" value="0.5" aria-label="Music volume">
+            </label>
         </div>
         <div id="game">
             <div id="character">
                 <div id="hitbox"></div>
             </div>
             <div id="block"></div>
+            <div id="upper-block"></div>
             <script src="Js/script.js"></script>
         </div>
     </main>
