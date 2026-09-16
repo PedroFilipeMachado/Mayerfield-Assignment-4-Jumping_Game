@@ -9,13 +9,25 @@
 </head>
 
 <body>
-    <div id="game">
-        <div id="character">
-            <div id="hitbox"></div>
+    <main id="game-container">
+        <div id="scoreboard" aria-live="polite">
+            <div class="score-item">
+                <span class="score-label">Score</span>
+                <span id="score">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Avoided</span>
+                <span id="obstacles-avoided">0</span>
+            </div>
         </div>
-        <div id="block"></div>
-        <script src="Js/script.js"></script>
-    </div>
+        <div id="game">
+            <div id="character">
+                <div id="hitbox"></div>
+            </div>
+            <div id="block"></div>
+            <script src="Js/script.js"></script>
+        </div>
+    </main>
 </body>
 
 </html>
