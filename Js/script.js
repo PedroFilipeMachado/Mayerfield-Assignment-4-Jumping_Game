@@ -6,11 +6,32 @@ let game = document.getElementById('game');
 let scoreElement = document.getElementById('score');
 let obstaclesAvoidedElement = document.getElementById('obstacles-avoided');
 let musicVolume = document.getElementById('music-volume');
+
 const defaultAudioVolume = 0.1;
 const backgroundMusic = new Audio('Assets/Music/AdhesiveWombat - Night Shade.mp3');
 backgroundMusic.loop = true;
 musicVolume.value = defaultAudioVolume;
 backgroundMusic.volume = defaultAudioVolume;
+
+const pointsPerSecond = 10;
+const obstacleSpeedIncrease = 0.95;
+const minimumObstacleGap = 400;
+let obstaclePlaybackRate = 1;
+let gameStarted = false;
+let gameOver = false;
+let lowerObstacleSpawnTimeout;
+let upperObstacleSpawnTimeout;
+const groundPosition = 300;
+const jumpDuration = 800;
+const jumpHeight = 200;
+const fallSpeedMultiplier = 2.5;
+const fastFallDelay = 200;
+let characterPosition = groundPosition;
+let isJumping = false;
+let isFallingFast = false;
+let fastFallTimeout;
+let jumpStartTime = 0;
+let nextJumpSound = 0;
 
 block.style.display = 'none';
 upperBlock.style.display = 'none';
@@ -61,13 +82,6 @@ function cycleBackgrounds() {
     };
 }
 
-const obstacleSpeedIncrease = 0.9;
-const minimumObstacleGap = 300;
-let obstaclePlaybackRate = 1;
-let gameStarted = false;
-let gameOver = false;
-let lowerObstacleSpawnTimeout;
-let upperObstacleSpawnTimeout;
 
 function increaseObstacleSpeed() {
     obstaclePlaybackRate /= obstacleSpeedIncrease;
@@ -147,8 +161,6 @@ function spawnUpperObstacle() {
     }
 }
 
-const pointsPerSecond = 10;
-
 function playBackgroundMusic() {
     backgroundMusic.play().catch(function () {
     });
@@ -158,9 +170,6 @@ musicVolume.addEventListener('input', function () {
     backgroundMusic.volume = musicVolume.value;
 });
 
-const groundPosition = 300;
-const jumpDuration = 800;
-const jumpHeight = 200;
 const jumpSounds = [1, 2, 3, 4, 5, 6, 7].map(function (soundNumber) {
     const jumpSound = new Audio(`Assets/Sound Effects/Jumps/jump${soundNumber}.mp3`);
     jumpSound.volume = defaultAudioVolume;
@@ -171,13 +180,12 @@ const crashSounds = [1, 2, 3, 4, 5, 6, 7, 8].map(function (soundNumber) {
     crashSound.volume = defaultAudioVolume;
     return crashSound;
 });
-let characterPosition = groundPosition;
-let isJumping = false;
-let jumpStartTime = 0;
-let nextJumpSound = 0;
 
 function updateJump(currentTime) {
-    const jumpProgress = Math.min((currentTime - jumpStartTime) / jumpDuration, 1);
+    const normalProgress = Math.min((currentTime - jumpStartTime) / jumpDuration, 1);
+    const jumpProgress = normalProgress > 0.5 && isFallingFast
+        ? Math.min(0.5 + (normalProgress - 0.5) * fallSpeedMultiplier, 1)
+        : normalProgress;
     characterPosition = groundPosition - jumpHeight * 4 * jumpProgress * (1 - jumpProgress);
 
     character.style.top = `${characterPosition}px`;
@@ -296,6 +304,7 @@ function startGame() {
             clearInterval(scoreTimer);
             clearTimeout(lowerObstacleSpawnTimeout);
             clearTimeout(upperObstacleSpawnTimeout);
+            clearTimeout(fastFallTimeout);
             updateScore();
 
             const crashSound = crashSounds[Math.floor(Math.random() * crashSounds.length)];
@@ -317,18 +326,31 @@ function startGame() {
     upperObstacleSpawnTimeout = setTimeout(spawnUpperObstacle, 500);
 
     document.addEventListener('keydown', function (event) {
-        if (event.code !== 'Space') {
-            return;
+        if (event.code === 'Space') {
+            event.preventDefault();
+            jump();
+        } else if (event.code === 'KeyS' && !isFallingFast && !fastFallTimeout) {
+            fastFallTimeout = setTimeout(function () {
+                isFallingFast = true;
+                fastFallTimeout = undefined;
+            }, fastFallDelay);
         }
+    });
 
-        event.preventDefault();
-        jump();
+    document.addEventListener('keyup', function (event) {
+        if (event.code === 'KeyS') {
+            clearTimeout(fastFallTimeout);
+            fastFallTimeout = undefined;
+            isFallingFast = false;
+        }
     });
 }
 
 alert(`Welcome to the "Non-Descript Lizard Game"!
-The non-descript lizard has just destroyed the city's nuclear power plant and must now escape the buildings that are trying to chase him down!
-Help him escape!`);
+The non-descript lizard has just consumed the city's nuclear power plant and must now escape the buildings that are trying to chase him down!
+Help him escape!
+
+Press the spacebar to jump over the buildings and hold the S key to fall faster.`);
 
 gameStarted = true;
 startGame();
