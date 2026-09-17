@@ -43,7 +43,6 @@ const obstacleSprites = [
     'Assets/Obstacles/plane_3.png',
     'Assets/Obstacles/plane_4.png',
     'Assets/Obstacles/plane_5.png',
-
 ];
 
 function setBackground(index) {
@@ -63,6 +62,7 @@ function cycleBackgrounds() {
 const obstacleSpeedIncrease = 0.9;
 const minimumObstacleGap = 300;
 let obstaclePlaybackRate = 1;
+let gameStarted = false;
 let gameOver = false;
 let lowerObstacleSpawnTimeout;
 let upperObstacleSpawnTimeout;
@@ -93,12 +93,14 @@ function canSpawnObstacle(obstacle) {
         return true;
     }
 
+    const gamePosition = game.getBoundingClientRect().left;
+    const spawnPosition = gamePosition + 1000;
     const otherObstaclePosition = otherObstacle.getBoundingClientRect().left;
-    return Math.abs(1000 - otherObstaclePosition) >= minimumObstacleGap;
+    return Math.abs(spawnPosition - otherObstaclePosition) >= minimumObstacleGap;
 }
 
 function spawnObstacle() {
-    if (gameOver) {
+    if (!gameStarted || gameOver) {
         return;
     }
 
@@ -121,7 +123,7 @@ function spawnObstacle() {
 }
 
 function spawnUpperObstacle() {
-    if (gameOver) {
+    if (!gameStarted || gameOver) {
         return;
     }
 
@@ -203,6 +205,10 @@ const jump = function () {
 
 
 function startGame() {
+    if (!gameStarted) {
+        return;
+    }
+
     const updateBackground = cycleBackgrounds();
     const gameStartTime = Date.now();
     let scoreTimer;
@@ -303,12 +309,20 @@ function startGame() {
 
     spawnObstacle();
     upperObstacleSpawnTimeout = setTimeout(spawnUpperObstacle, 500);
-    document.addEventListener('keydown', jump);
+
+    document.addEventListener('keydown', function (event) {
+        if (event.code !== 'Space') {
+            return;
+        }
+
+        event.preventDefault();
+        jump();
+    });
 }
 
 alert(`Welcome to the "Non-Descript Lizard Game"!
-
 The non-descript lizard has just destroyed the city's nuclear power plant and must now escape the buildings that are trying to chase him down!
-
 Help him escape!`);
+
+gameStarted = true;
 startGame();
