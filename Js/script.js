@@ -6,9 +6,11 @@ let game = document.getElementById('game');
 let scoreElement = document.getElementById('score');
 let obstaclesAvoidedElement = document.getElementById('obstacles-avoided');
 let musicVolume = document.getElementById('music-volume');
+const defaultAudioVolume = 0.1;
 const backgroundMusic = new Audio('Assets/Music/AdhesiveWombat - Night Shade.mp3');
 backgroundMusic.loop = true;
-backgroundMusic.volume = musicVolume.value;
+musicVolume.value = defaultAudioVolume;
+backgroundMusic.volume = defaultAudioVolume;
 
 block.style.display = 'none';
 upperBlock.style.display = 'none';
@@ -160,10 +162,14 @@ const groundPosition = 300;
 const jumpDuration = 800;
 const jumpHeight = 200;
 const jumpSounds = [1, 2, 3, 4, 5, 6, 7].map(function (soundNumber) {
-    return new Audio(`Assets/Sound Effects/Jumps/jump${soundNumber}.mp3`);
+    const jumpSound = new Audio(`Assets/Sound Effects/Jumps/jump${soundNumber}.mp3`);
+    jumpSound.volume = defaultAudioVolume;
+    return jumpSound;
 });
 const crashSounds = [1, 2, 3, 4, 5, 6, 7, 8].map(function (soundNumber) {
-    return new Audio(`Assets/Sound Effects/Crashes/crash${soundNumber}.wav`);
+    const crashSound = new Audio(`Assets/Sound Effects/Crashes/crash${soundNumber}.wav`);
+    crashSound.volume = defaultAudioVolume;
+    return crashSound;
 });
 let characterPosition = groundPosition;
 let isJumping = false;
