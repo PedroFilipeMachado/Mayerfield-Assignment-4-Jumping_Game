@@ -155,8 +155,8 @@ musicVolume.addEventListener('input', function () {
 });
 
 const groundPosition = 300;
-const jumpStrength = 18;
-const gravity = 0.8;
+const jumpDuration = 800;
+const jumpHeight = 200;
 const jumpSounds = [1, 2, 3, 4, 5, 6, 7].map(function (soundNumber) {
     return new Audio(`Assets/Sound Effects/Jumps/jump${soundNumber}.mp3`);
 });
@@ -164,24 +164,20 @@ const crashSounds = [1, 2, 3, 4, 5, 6, 7, 8].map(function (soundNumber) {
     return new Audio(`Assets/Sound Effects/Crashes/crash${soundNumber}.wav`);
 });
 let characterPosition = groundPosition;
-let characterVelocity = 0;
 let isJumping = false;
+let jumpStartTime = 0;
 let nextJumpSound = 0;
 
-function updateJump() {
-    characterVelocity += gravity;
-    characterPosition += characterVelocity;
-
-    if (characterPosition >= groundPosition) {
-        characterPosition = groundPosition;
-        characterVelocity = 0;
-        isJumping = false;
-    }
+function updateJump(currentTime) {
+    const jumpProgress = Math.min((currentTime - jumpStartTime) / jumpDuration, 1);
+    characterPosition = groundPosition - jumpHeight * 4 * jumpProgress * (1 - jumpProgress);
 
     character.style.top = `${characterPosition}px`;
 
-    if (isJumping) {
+    if (jumpProgress < 1) {
         requestAnimationFrame(updateJump);
+    } else {
+        isJumping = false;
     }
 }
 
@@ -193,7 +189,7 @@ const jump = function () {
     playBackgroundMusic();
 
     isJumping = true;
-    characterVelocity = -jumpStrength;
+    jumpStartTime = performance.now();
 
     const jumpSound = jumpSounds[nextJumpSound];
     nextJumpSound = (nextJumpSound + 1) % jumpSounds.length;
