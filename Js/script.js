@@ -14,8 +14,8 @@ musicVolume.value = defaultAudioVolume;
 backgroundMusic.volume = defaultAudioVolume;
 
 const pointsPerSecond = 10;
-const obstacleSpeedIncrease = 0.9;
-const minimumObstacleGap = 300;
+const obstacleSpeedIncrease = 0.95;
+const minimumObstacleGap = 400;
 let obstaclePlaybackRate = 1;
 let gameStarted = false;
 let gameOver = false;
@@ -25,9 +25,11 @@ const groundPosition = 300;
 const jumpDuration = 800;
 const jumpHeight = 200;
 const fallSpeedMultiplier = 2.5;
+const fastFallDelay = 200;
 let characterPosition = groundPosition;
 let isJumping = false;
 let isFallingFast = false;
+let fastFallTimeout;
 let jumpStartTime = 0;
 let nextJumpSound = 0;
 
@@ -302,6 +304,7 @@ function startGame() {
             clearInterval(scoreTimer);
             clearTimeout(lowerObstacleSpawnTimeout);
             clearTimeout(upperObstacleSpawnTimeout);
+            clearTimeout(fastFallTimeout);
             updateScore();
 
             const crashSound = crashSounds[Math.floor(Math.random() * crashSounds.length)];
@@ -326,13 +329,18 @@ function startGame() {
         if (event.code === 'Space') {
             event.preventDefault();
             jump();
-        } else if (event.code === 'KeyS') {
-            isFallingFast = true;
+        } else if (event.code === 'KeyS' && !isFallingFast && !fastFallTimeout) {
+            fastFallTimeout = setTimeout(function () {
+                isFallingFast = true;
+                fastFallTimeout = undefined;
+            }, fastFallDelay);
         }
     });
 
     document.addEventListener('keyup', function (event) {
         if (event.code === 'KeyS') {
+            clearTimeout(fastFallTimeout);
+            fastFallTimeout = undefined;
             isFallingFast = false;
         }
     });
