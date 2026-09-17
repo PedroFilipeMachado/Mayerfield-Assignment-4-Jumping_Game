@@ -24,8 +24,10 @@ let upperObstacleSpawnTimeout;
 const groundPosition = 300;
 const jumpDuration = 800;
 const jumpHeight = 200;
+const fallSpeedMultiplier = 2.5;
 let characterPosition = groundPosition;
 let isJumping = false;
+let isFallingFast = false;
 let jumpStartTime = 0;
 let nextJumpSound = 0;
 
@@ -178,7 +180,10 @@ const crashSounds = [1, 2, 3, 4, 5, 6, 7, 8].map(function (soundNumber) {
 });
 
 function updateJump(currentTime) {
-    const jumpProgress = Math.min((currentTime - jumpStartTime) / jumpDuration, 1);
+    const normalProgress = Math.min((currentTime - jumpStartTime) / jumpDuration, 1);
+    const jumpProgress = normalProgress > 0.5 && isFallingFast
+        ? Math.min(0.5 + (normalProgress - 0.5) * fallSpeedMultiplier, 1)
+        : normalProgress;
     characterPosition = groundPosition - jumpHeight * 4 * jumpProgress * (1 - jumpProgress);
 
     character.style.top = `${characterPosition}px`;
@@ -318,18 +323,26 @@ function startGame() {
     upperObstacleSpawnTimeout = setTimeout(spawnUpperObstacle, 500);
 
     document.addEventListener('keydown', function (event) {
-        if (event.code !== 'Space') {
-            return;
+        if (event.code === 'Space') {
+            event.preventDefault();
+            jump();
+        } else if (event.code === 'KeyS') {
+            isFallingFast = true;
         }
+    });
 
-        event.preventDefault();
-        jump();
+    document.addEventListener('keyup', function (event) {
+        if (event.code === 'KeyS') {
+            isFallingFast = false;
+        }
     });
 }
 
 alert(`Welcome to the "Non-Descript Lizard Game"!
-The non-descript lizard has just destroyed the city's nuclear power plant and must now escape the buildings that are trying to chase him down!
-Help him escape!`);
+The non-descript lizard has just consumed the city's nuclear power plant and must now escape the buildings that are trying to chase him down!
+Help him escape!
+
+Press the spacebar to jump over the buildings and hold the S key to fall faster.`);
 
 gameStarted = true;
 startGame();
