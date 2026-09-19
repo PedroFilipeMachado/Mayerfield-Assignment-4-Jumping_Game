@@ -198,7 +198,7 @@ function updateJump(currentTime) {
 }
 
 const jump = function () {
-    if (isJumping) {
+    if (!gameStarted || gameOver || isJumping) {
         return;
     }
 
@@ -219,9 +219,11 @@ const jump = function () {
 
 
 function startGame() {
-    if (!gameStarted) {
+    if (gameStarted) {
         return;
     }
+
+    gameStarted = true;
 
     const updateBackground = cycleBackgrounds();
     const gameStartTime = Date.now();
@@ -352,5 +354,4 @@ Help him escape!
 
 Press the spacebar to jump over the buildings and hold the S key to fall faster.`);
 
-gameStarted = true;
 startGame();

@@ -63,6 +63,11 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     overflow: hidden;
+    visibility: hidden;
+}
+
+#game.game-started {
+    visibility: visible;
 }
 
 #character {
